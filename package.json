@@ -1,0 +1,5 @@
+{
+  "name": "checkers-monorepo",
+  "private": true,
+  "workspaces": ["common", "checkers-backend", "checkers-frontend"]
+}
