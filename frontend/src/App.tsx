@@ -1,7 +1,7 @@
+import { BoardState, SquareState } from 'common/dist/board';
 import { useCallback, useRef, useState } from 'react';
 import './App.scss';
 import Board from './board/Board';
-import { BoardState, SquareState } from './game.model';
 import {
   PlayerId,
   SocketCallbackConfig,

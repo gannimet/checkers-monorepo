@@ -1,6 +1,12 @@
 $white: rgb(252, 243, 226);
 $black: rgb(43, 43, 43);
 
+$brown: rgb(169, 87, 0);
+$orange: rgb(231, 150, 1);
+
+$purple: rgb(190, 20, 180);
+$lavender: rgb(230, 80, 210);
+
 .board {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
@@ -20,11 +26,15 @@ $black: rgb(43, 43, 43);
     }
 
     &.white {
-      background-color: white;
+      background-color: $lavender;
     }
 
     &.black {
-      background-color: rgb(168, 168, 168);
+      background-color: $purple;
+    }
+
+    &.valid-move {
+      background-color: rgb(229, 255, 0);
     }
 
     .piece {

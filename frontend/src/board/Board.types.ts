@@ -1,4 +1,4 @@
-import { BoardState } from '../game.model';
+import { BoardState } from 'common/dist/board';
 
 export type BoardProps = {
   boardState: BoardState;

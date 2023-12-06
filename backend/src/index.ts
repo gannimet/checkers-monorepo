@@ -1,4 +1,4 @@
-import { Position, positionToIndex } from 'common/dist/board-utils';
+import { Position, positionToIndex } from 'common/dist/board';
 import { WebSocketServer } from 'ws';
 const { randomUUID } = require('node:crypto');
 
@@ -30,17 +30,17 @@ const initialWhitePositions: Position[] = [
 ];
 
 const initialBlackPositions: Position[] = [
-  [1, 0],
+  [3, 4],
   [3, 0],
   [5, 0],
   [7, 0],
-  [0, 1],
+  [0, 3],
   [2, 1],
-  [4, 1],
+  [5, 2],
   [6, 1],
   [1, 2],
   [3, 2],
-  [5, 2],
+  [5, 4],
   [7, 2],
 ];
 

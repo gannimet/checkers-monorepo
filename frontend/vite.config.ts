@@ -5,6 +5,6 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    preserveSymlinks: true, // To make it works with npm workspaces
+    preserveSymlinks: true, // To make it work with npm workspaces
   },
 });

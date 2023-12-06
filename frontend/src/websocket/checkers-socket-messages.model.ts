@@ -1,4 +1,4 @@
-import { SquareState } from '../game.model';
+import { SquareState } from 'common/dist/board';
 
 export type PlayerId = string;
 

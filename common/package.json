@@ -3,9 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "description": "",
-  "main": "index.js",
+  "main": "./dist/board.js",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "tsc -b"
+    "build": "rm -rf ./dist && tsc -b",
+    "build:watch": "rm -rf ./dist && tsc -b --watch"
   },
   "author": "Richard Wotzlaw",
   "license": "ISC",

@@ -1,35 +1,30 @@
-import { Position, positionToIndex } from 'common/dist/board-utils';
-import React from 'react';
-import { SquareState } from '../game.model';
+import { Position, SquareState, positionToIndex } from 'common/dist/board';
+import { Move, getValidMovesFromPosition, isKing } from 'common/dist/game';
+import React, { useCallback, useMemo, useState } from 'react';
 import './Board.scss';
 import { BoardProps } from './Board.types';
+import {
+  getHighlightedSquareIndicesForPossibleMoves,
+  getSquareColorClassName,
+  getSquareStateClassName,
+} from './Board.utils';
 
 const Board = React.memo<BoardProps>(({ boardState }) => {
   const rows = new Array(8).fill(0);
   const columns = new Array(8).fill(0);
+  const [validMoves, setValidMoves] = useState<Move[][]>([]);
 
-  function getSquareStateClassName(squareState: SquareState) {
-    switch (squareState) {
-      case SquareState.Empty:
-        return 'empty';
-      case SquareState.White:
-        return 'white';
-      case SquareState.WhiteKing:
-        return 'white-king';
-      case SquareState.Black:
-        return 'black';
-      case SquareState.BlackKing:
-        return 'black-king';
-    }
-  }
+  const highlightedSquareIndices = useMemo(() => {
+    return getHighlightedSquareIndicesForPossibleMoves(validMoves);
+  }, [validMoves]);
 
-  function getSquareColorClassName([column, row]: Position) {
-    if (column % 2 === 0) {
-      return row % 2 === 0 ? 'white' : 'black';
-    }
-
-    return row % 2 === 0 ? 'black' : 'white';
-  }
+  const onCellClick = useCallback(
+    (sourceIndex: number) => {
+      const possibleMoves = getValidMovesFromPosition(sourceIndex, boardState);
+      setValidMoves(possibleMoves);
+    },
+    [boardState],
+  );
 
   return (
     <div className="board">
@@ -41,14 +36,24 @@ const Board = React.memo<BoardProps>(({ boardState }) => {
             const squareState = boardState[squareIndex];
             const stateClassName = getSquareStateClassName(squareState);
             const squareColorClassName = getSquareColorClassName(position);
+            const kingClassName = isKing(squareState) ? 'king' : '';
+            const validMoveClass = highlightedSquareIndices.includes(
+              squareIndex,
+            )
+              ? 'valid-move'
+              : '';
 
             return (
               <div
-                className={`board__cell ${squareColorClassName}`}
+                className={`board__cell ${squareColorClassName} ${validMoveClass}`}
                 key={`r${rowIndex}c${columnIndex}`}
+                onClick={() => onCellClick(squareIndex)}
               >
+                <span>{squareIndex}</span>
                 {squareState !== SquareState.Empty && (
-                  <div className={`piece ${stateClassName} king`}></div>
+                  <div
+                    className={`piece ${stateClassName} ${kingClassName}`}
+                  ></div>
                 )}
                 {squareState === SquareState.Empty && <></>}
               </div>
