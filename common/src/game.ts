@@ -24,80 +24,49 @@ export function getValidMovesFromPosition(
   boardState: BoardState,
 ): Move[][] {
   const sourcePiece = boardState[sourceSquareIndex];
-  const result: Move[][] = [];
 
-  if (sourcePiece === SquareState.White) {
-    const topLeftIndex = sourceSquareIndex + directionDiffMap['topleft'][0];
-    const topRightIndex = sourceSquareIndex + directionDiffMap['topright'][0];
+  const directionsToExplore: Direction[] = isKing(sourcePiece)
+    ? ['topleft', 'topright', 'bottomleft', 'bottomright']
+    : ['topleft', 'topright'];
 
-    // if (
-    //   isValidSquare(topLeftIndex) &&
-    //   getLineDiff(sourceSquareIndex, topLeftIndex) === 1
-    // ) {
-    //   const topLeftOccupation = boardState[topLeftIndex];
+  return directionsToExplore
+    .map((direction) => {
+      const squareAheadIndex =
+        sourceSquareIndex + directionDiffMap[direction][0];
 
-    //   if (topLeftOccupation === SquareState.Empty) {
-    //     result.push([
-    //       {
-    //         from: sourceSquareIndex,
-    //         to: topLeftIndex,
-    //         capture: null,
-    //       },
-    //     ]);
-    //   } else if (isBlack(topLeftOccupation)) {
-    //     const jumpSequences = findJumpSequences(
-    //       sourcePiece,
-    //       sourceSquareIndex,
-    //       boardState,
-    //       'topleft',
-    //     );
+      if (
+        isValidSquare(squareAheadIndex) &&
+        getLineDiff(sourceSquareIndex, squareAheadIndex) === 1
+      ) {
+        const squareAheadOccupation = boardState[squareAheadIndex];
 
-    //     result.push(...jumpSequences);
-    //   }
-    // }
-
-    if (
-      isValidSquare(topRightIndex) &&
-      getLineDiff(sourceSquareIndex, topRightIndex) === 1
-    ) {
-      const topRightOccupation = boardState[topRightIndex];
-
-      if (topRightOccupation === SquareState.Empty) {
-        result.push([
-          {
-            from: sourceSquareIndex,
-            to: topRightIndex,
-            capture: null,
-          },
-        ]);
-      } else if (isBlack(topRightOccupation)) {
-        const jumpSequences = findJumpSequences(
-          sourcePiece,
-          sourceSquareIndex,
-          boardState,
-          'topright',
-        );
-
-        result.push(...jumpSequences);
+        if (squareAheadOccupation === SquareState.Empty) {
+          // Normal move is possible
+          return [
+            [
+              {
+                from: sourceSquareIndex,
+                to: squareAheadIndex,
+                capture: null,
+              },
+            ],
+          ];
+        } else if (isOpponentPiece(sourcePiece, squareAheadOccupation)) {
+          // Opponent piece ahead, explore jump possibilities
+          return findJumpSequences(
+            sourcePiece,
+            sourceSquareIndex,
+            boardState,
+            direction,
+            [],
+          );
+        }
       }
-    }
 
-    return result;
-  }
-
-  if (sourcePiece === SquareState.WhiteKing) {
-    return [];
-  }
-
-  if (sourcePiece === SquareState.Black) {
-    return [];
-  }
-
-  if (sourcePiece === SquareState.BlackKing) {
-    return [];
-  }
-
-  return [];
+      return [];
+    })
+    .filter((jumpSequence) => jumpSequence.length > 1)
+    .flat();
 }
 
 function findJumpSequences(
@@ -105,10 +74,8 @@ function findJumpSequences(
   sourceSquareIndex: number,
   boardState: BoardState,
   direction: Direction,
+  visitedSquareIndices: number[],
 ): Move[][] {
-  console.log('-----');
-  console.log('source square:', sourceSquareIndex);
-  console.log('direction:', direction);
   const targetIndex = sourceSquareIndex + directionDiffMap[direction][0];
 
   if (
@@ -117,7 +84,7 @@ function findJumpSequences(
     getLineDiff(sourceSquareIndex, targetIndex) !== 1
   ) {
     // Next square is either out of bounds or there is no opponent piece on it
-    return [];
+    return [[]];
   }
 
   // Look one step ahead of opponent directly in front/behind
@@ -126,10 +93,16 @@ function findJumpSequences(
   if (
     !isValidSquare(jumpAheadIndex) ||
     !isSquareEmpty(jumpAheadIndex, boardState) ||
-    getLineDiff(sourceSquareIndex, jumpAheadIndex) !== 2
+    getLineDiff(sourceSquareIndex, jumpAheadIndex) !== 2 ||
+    visitedSquareIndices.includes(jumpAheadIndex)
   ) {
-    // Square beyond is either out of bounds or it's already occupied
-    return [];
+    /*
+     * Square beyond is either:
+     *  - out of bounds
+     *  - already occupied
+     *  - already visited in the current jump sequence
+     */
+    return [[]];
   }
 
   // Square beyond direct opponent is free - jump possible!
@@ -144,33 +117,21 @@ function findJumpSequences(
     ? ['topleft', 'topright', 'bottomleft', 'bottomright']
     : ['topleft', 'topright']; // TODO be careful when investigating the board from Black's POV
 
-  const sequences = directionsToExplore
-    .map((direction) => {
-      console.log(
-        'calling it new from index:',
-        jumpAheadIndex,
-        'with direction:',
-        direction,
-      );
-      return findJumpSequences(
-        sourcePiece,
-        jumpAheadIndex,
-        boardState,
-        direction,
-      );
-    })
+  return [
+    [[]],
+    ...directionsToExplore
+      .map((direction) =>
+        findJumpSequences(sourcePiece, jumpAheadIndex, boardState, direction, [
+          ...visitedSquareIndices,
+          sourceSquareIndex,
+        ]),
+      )
+      .filter((jss) => !(jss.length === 1 && jss[0].length === 0)),
+  ]
     .map((jumpSequences) => {
-      if (jumpSequences.length === 0) {
-        return [[jumpMove]];
-      }
-
-      return jumpSequences.map((jumpSequence) => {
-        return [jumpMove].concat(jumpSequence);
-      });
+      return jumpSequences.map((jumpSequence) => [jumpMove, ...jumpSequence]);
     })
     .flat();
-
-  return sequences;
 }
 
 function isOpponent(
@@ -205,4 +166,11 @@ export function isBlack(piece: SquareState) {
 
 export function isKing(piece: SquareState) {
   return piece === SquareState.BlackKing || piece == SquareState.WhiteKing;
+}
+
+export function isOpponentPiece(
+  sourcePiece: SquareState,
+  otherPiece: SquareState,
+) {
+  return isWhite(sourcePiece) ? isBlack(otherPiece) : isWhite(otherPiece);
 }

@@ -1,4 +1,4 @@
-import { Position, positionToIndex } from 'common/dist/board';
+import { Position, positionToIndex, SquareState } from 'common/dist/board';
 import { WebSocketServer } from 'ws';
 const { randomUUID } = require('node:crypto');
 
@@ -19,7 +19,7 @@ const initialWhitePositions: Position[] = [
   [2, 5],
   [4, 5],
   [6, 5],
-  [1, 6],
+  [6, 3],
   [3, 6],
   [5, 6],
   [7, 6],
@@ -55,6 +55,8 @@ initialBlackPositions.forEach((position) => {
 
   initialState[index] = 2;
 });
+
+initialState[44] = SquareState.WhiteKing;
 
 wss.on('connection', (ws) => {
   ws.on('error', console.error);

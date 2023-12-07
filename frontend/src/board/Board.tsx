@@ -22,6 +22,7 @@ const Board = React.memo<BoardProps>(({ boardState }) => {
     (sourceIndex: number) => {
       const possibleMoves = getValidMovesFromPosition(sourceIndex, boardState);
       setValidMoves(possibleMoves);
+      console.log('possible moves:', possibleMoves);
     },
     [boardState],
   );
