@@ -1,37 +1,36 @@
-import { useEffect, useState } from 'react';
+import { DownstreamSocketMessage } from 'common';
+import { useEffect, useRef } from 'react';
 import { CONFIG } from '../config';
-import {
-  IncomingSocketMessage,
-  SocketCallbackConfig,
-} from './checkers-socket-messages.model';
+import { CheckersSocket } from './checkers-socket';
+import { SocketCallbackConfig } from './checkers-socket-messages.model';
 
 export default function useCheckersSocket(
   callbackConfig: SocketCallbackConfig,
 ) {
-  const [socket, setSocket] = useState<WebSocket>();
+  const checkersSocket = useRef(new CheckersSocket());
 
   useEffect(() => {
-    const theSocket = new WebSocket(CONFIG.websocketUrl);
-    setSocket(theSocket);
+    const rawSocket = new WebSocket(CONFIG.websocketUrl);
 
-    theSocket.addEventListener('open', () => {
+    checkersSocket.current.socket = rawSocket;
+    console.log('set up checkers socket:', checkersSocket);
+
+    rawSocket.addEventListener('open', () => {
       handleConnection(callbackConfig);
     });
 
-    theSocket.addEventListener('message', (message) => {
-      const parsedMessage: IncomingSocketMessage = JSON.parse(message.data);
+    rawSocket.addEventListener('message', (message) => {
+      const parsedMessage: DownstreamSocketMessage = JSON.parse(message.data);
 
       handleMessage(parsedMessage, callbackConfig);
     });
 
     return () => {
-      theSocket.close();
+      rawSocket.close();
     };
   }, [callbackConfig]);
 
-  return {
-    socket,
-  };
+  return checkersSocket.current;
 }
 
 function handleConnection(callbackConfig: SocketCallbackConfig) {
@@ -41,7 +40,7 @@ function handleConnection(callbackConfig: SocketCallbackConfig) {
 }
 
 function handleMessage(
-  message: IncomingSocketMessage,
+  message: DownstreamSocketMessage,
   callbackConfig: SocketCallbackConfig,
 ) {
   const { onPlayerConfirm, onGameStarted, onTurnPlayed, onGameOver } =

@@ -28,10 +28,10 @@ function App() {
     },
   });
 
-  const { socket } = useCheckersSocket(socketConfig.current);
+  const socket = useCheckersSocket(socketConfig.current);
 
   const onSend = useCallback(() => {
-    socket && socket.send('Button clicked!');
+    socket?.applyForGame();
   }, [socket]);
 
   return (

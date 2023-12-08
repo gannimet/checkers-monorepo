@@ -20,9 +20,13 @@ const Board = React.memo<BoardProps>(({ boardState }) => {
 
   const onCellClick = useCallback(
     (sourceIndex: number) => {
+      if (boardState[sourceIndex] === SquareState.Empty) {
+        setValidMoves([]);
+        return;
+      }
+
       const possibleMoves = getValidMovesFromPosition(sourceIndex, boardState);
       setValidMoves(possibleMoves);
-      console.log('possible moves:', possibleMoves);
     },
     [boardState],
   );

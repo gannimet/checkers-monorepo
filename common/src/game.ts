@@ -1,5 +1,9 @@
 import { BoardState, SquareState, getLineDiff, isValidSquare } from './board';
 
+export type PlayerId = string;
+
+export type GameId = string;
+
 export type Move = {
   from: number;
   to: number;
@@ -12,11 +16,18 @@ type DirectionDiffMap = {
   [D in Direction]: [number, number];
 };
 
-const directionDiffMap: DirectionDiffMap = {
+const directionDiffMapWhite: DirectionDiffMap = {
   topleft: [-9, -18],
   topright: [-7, -14],
   bottomleft: [7, 14],
   bottomright: [9, 18],
+};
+
+const directionDiffMapBlack: DirectionDiffMap = {
+  topleft: [9, 18],
+  topright: [7, 14],
+  bottomleft: [-7, -14],
+  bottomright: [-9, -18],
 };
 
 export function getValidMovesFromPosition(
@@ -25,14 +36,20 @@ export function getValidMovesFromPosition(
 ): Move[][] {
   const sourcePiece = boardState[sourceSquareIndex];
 
+  if (sourcePiece === SquareState.Empty) {
+    return [];
+  }
+
   const directionsToExplore: Direction[] = isKing(sourcePiece)
     ? ['topleft', 'topright', 'bottomleft', 'bottomright']
     : ['topleft', 'topright'];
 
   return directionsToExplore
     .map((direction) => {
-      const squareAheadIndex =
-        sourceSquareIndex + directionDiffMap[direction][0];
+      const moveDiff = isWhite(sourcePiece)
+        ? directionDiffMapWhite[direction][0]
+        : directionDiffMapBlack[direction][0];
+      const squareAheadIndex = sourceSquareIndex + moveDiff;
 
       if (
         isValidSquare(squareAheadIndex) &&
@@ -65,7 +82,7 @@ export function getValidMovesFromPosition(
 
       return [];
     })
-    .filter((jumpSequence) => jumpSequence.length > 1)
+    .filter((jumpSequence) => jumpSequence.length > 0)
     .flat();
 }
 
@@ -76,7 +93,10 @@ function findJumpSequences(
   direction: Direction,
   visitedSquareIndices: number[],
 ): Move[][] {
-  const targetIndex = sourceSquareIndex + directionDiffMap[direction][0];
+  const moveDiff = isWhite(sourcePiece)
+    ? directionDiffMapWhite[direction][0]
+    : directionDiffMapBlack[direction][0];
+  const targetIndex = sourceSquareIndex + moveDiff;
 
   if (
     !isValidSquare(targetIndex) ||
@@ -88,7 +108,10 @@ function findJumpSequences(
   }
 
   // Look one step ahead of opponent directly in front/behind
-  const jumpAheadIndex = sourceSquareIndex + directionDiffMap[direction][1];
+  const jumpDiff = isWhite(sourcePiece)
+    ? directionDiffMapWhite[direction][1]
+    : directionDiffMapBlack[direction][1];
+  const jumpAheadIndex = sourceSquareIndex + jumpDiff;
 
   if (
     !isValidSquare(jumpAheadIndex) ||
