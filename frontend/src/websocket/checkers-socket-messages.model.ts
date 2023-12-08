@@ -1,9 +1,10 @@
 import {
+  GameAbortedMessage,
   GameOverMessage,
   GameStartedMessage,
   PlayerConfirmMessage,
   TurnPlayedMessage,
-} from 'common/dist/websocket/downstream-messages.model';
+} from 'common';
 
 export type SocketCallbackConfig = {
   onConnected?: () => void;
@@ -11,4 +12,5 @@ export type SocketCallbackConfig = {
   onGameStarted?: (message: GameStartedMessage) => void;
   onTurnPlayed?: (message: TurnPlayedMessage) => void;
   onGameOver?: (message: GameOverMessage) => void;
+  onGameAborted?: (message: GameAbortedMessage) => void;
 };

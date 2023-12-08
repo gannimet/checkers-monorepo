@@ -1,11 +1,13 @@
 import {
   ApplyForGameMessage,
+  DownstreamSocketMessage,
   PlayTurnMessage,
+  PlayerConfirmMessage,
   PlayerId,
   UpstreamSocketMessage,
 } from 'common';
 import { WebSocket } from 'ws';
-import { getInitialBoardState } from './constants';
+const { randomUUID } = require('node:crypto');
 
 type Player = {
   id: PlayerId;
@@ -37,14 +39,20 @@ function handleApplyForGameMessage(
   ws: WebSocket,
   message: ApplyForGameMessage,
 ) {
-  ws.send(
-    JSON.stringify({
-      type: 'gameStarted',
-      opponentId: '123',
-      firstTurn: '456',
-      boardState: getInitialBoardState(),
-    }),
-  );
+  const playerId = randomUUID();
+  const gameId = randomUUID();
+
+  const response: PlayerConfirmMessage = {
+    type: 'playerConfirm',
+    playerId,
+    gameId,
+  };
+
+  sendMessage(ws, response);
 }
 
 function handlePlayTurnMessage(ws: WebSocket, message: PlayTurnMessage) {}
+
+function sendMessage(ws: WebSocket, message: DownstreamSocketMessage) {
+  ws.send(JSON.stringify(message));
+}

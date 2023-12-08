@@ -1,7 +1,6 @@
 import { UpstreamSocketMessage } from 'common';
 import { WebSocketServer } from 'ws';
 import { handleClientMessage } from './message-handling';
-const { randomUUID } = require('node:crypto');
 
 const port = process.env.PORT != null ? parseInt(process.env.PORT, 10) : 3001;
 const wss = new WebSocketServer({ port });
@@ -14,13 +13,4 @@ wss.on('connection', (ws) => {
 
     handleClientMessage(ws, message);
   });
-
-  const playerId = randomUUID();
-
-  ws.send(
-    JSON.stringify({
-      type: 'playerConfirm',
-      playerId: playerId,
-    }),
-  );
 });

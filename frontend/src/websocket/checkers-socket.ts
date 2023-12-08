@@ -10,6 +10,10 @@ import {
 export class CheckersSocket {
   socket?: WebSocket;
 
+  get isReady() {
+    return !!this.socket;
+  }
+
   applyForGame() {
     const message: ApplyForGameMessage = {
       type: 'applyForGame',

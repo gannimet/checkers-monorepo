@@ -1,13 +1,23 @@
-import { Position, SquareState, positionToIndex } from 'common/dist/board';
-import { Move, getValidMovesFromPosition, isKing } from 'common/dist/game';
+import {
+  BoardState,
+  Move,
+  Position,
+  SquareState,
+  getValidMovesFromPosition,
+  isKing,
+  positionToIndex,
+} from 'common';
 import React, { useCallback, useMemo, useState } from 'react';
 import './Board.scss';
-import { BoardProps } from './Board.types';
 import {
   getHighlightedSquareIndicesForPossibleMoves,
   getSquareColorClassName,
   getSquareStateClassName,
 } from './Board.utils';
+
+type BoardProps = {
+  boardState: BoardState;
+};
 
 const Board = React.memo<BoardProps>(({ boardState }) => {
   const rows = new Array(8).fill(0);
@@ -54,7 +64,6 @@ const Board = React.memo<BoardProps>(({ boardState }) => {
                 key={`r${rowIndex}c${columnIndex}`}
                 onClick={() => onCellClick(squareIndex)}
               >
-                <span>{squareIndex}</span>
                 {squareState !== SquareState.Empty && (
                   <div
                     className={`piece ${stateClassName} ${kingClassName}`}

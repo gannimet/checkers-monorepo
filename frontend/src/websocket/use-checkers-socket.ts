@@ -13,7 +13,6 @@ export default function useCheckersSocket(
     const rawSocket = new WebSocket(CONFIG.websocketUrl);
 
     checkersSocket.current.socket = rawSocket;
-    console.log('set up checkers socket:', checkersSocket);
 
     rawSocket.addEventListener('open', () => {
       handleConnection(callbackConfig);
@@ -43,8 +42,13 @@ function handleMessage(
   message: DownstreamSocketMessage,
   callbackConfig: SocketCallbackConfig,
 ) {
-  const { onPlayerConfirm, onGameStarted, onTurnPlayed, onGameOver } =
-    callbackConfig;
+  const {
+    onPlayerConfirm,
+    onGameStarted,
+    onTurnPlayed,
+    onGameOver,
+    onGameAborted,
+  } = callbackConfig;
 
   switch (message.type) {
     case 'playerConfirm': {
@@ -61,6 +65,10 @@ function handleMessage(
     }
     case 'gameOver': {
       onGameOver && onGameOver(message);
+      break;
+    }
+    case 'gameAborted': {
+      onGameAborted && onGameAborted(message);
       break;
     }
   }

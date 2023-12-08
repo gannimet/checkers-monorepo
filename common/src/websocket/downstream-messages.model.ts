@@ -39,4 +39,5 @@ export type DownstreamSocketMessage =
   | PlayerConfirmMessage
   | GameStartedMessage
   | TurnPlayedMessage
+  | GameAbortedMessage
   | GameOverMessage;
