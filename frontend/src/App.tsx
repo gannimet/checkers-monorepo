@@ -1,5 +1,5 @@
-import { BoardState, PlayerId, SquareState } from 'common';
-import { useCallback, useRef, useState } from 'react';
+import { BoardState, GameId, PlayerId, SquareState } from 'common';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import './App.scss';
 import AbortedScreen from './aborted-screen/AbortedScreen';
 import Board from './board/Board';
@@ -24,8 +24,38 @@ enum GameState {
 function App() {
   const [boardState, setBoardState] = useState<BoardState>(defaultBoardState);
   const [playerId, setPlayerId] = useState<PlayerId>();
+  const [gameId, setGameId] = useState<GameId>();
   const [gameState, setGameState] = useState(GameState.Idle);
   const [winnerId, setWinnerId] = useState<PlayerId>();
+  const [pieceColor, setPieceColor] = useState<
+    SquareState.White | SquareState.Black
+  >();
+  const [currentTurn, setCurrentTurn] = useState<PlayerId>();
+
+  const isGameReady = useMemo(() => {
+    return (
+      gameState === GameState.Running &&
+      !!gameId &&
+      !!playerId &&
+      pieceColor != null
+    );
+  }, [gameState, gameId, playerId, pieceColor]);
+
+  const opponentPieceColor = useMemo(() => {
+    return pieceColor === SquareState.White
+      ? SquareState.Black
+      : SquareState.White;
+  }, [pieceColor]);
+
+  const currentTurnColor = useMemo(() => {
+    if (currentTurn === playerId) {
+      // Local player has current turn, return his color
+      return pieceColor;
+    }
+
+    // Opponent has current turn, return opposite of local player color
+    return opponentPieceColor;
+  }, [currentTurn, playerId, opponentPieceColor]);
 
   const socketConfig = useRef<SocketCallbackConfig>({
     onConnected: () => {
@@ -37,7 +67,14 @@ function App() {
     },
     onGameStarted: (message) => {
       setBoardState(message.boardState);
+      setGameId(message.gameId);
+      setPieceColor(message.color);
+      setCurrentTurn(message.firstTurn);
       setGameState(GameState.Running);
+    },
+    onTurnPlayed: (message) => {
+      setCurrentTurn(message.nextTurn);
+      setBoardState(message.boardState);
     },
     onGameAborted: () => {
       setGameState(GameState.Aborted);
@@ -51,8 +88,14 @@ function App() {
   const socket = useCheckersSocket(socketConfig.current);
 
   const onPlayBtnClick = useCallback(() => {
-    socket?.applyForGame();
+    socket.applyForGame();
   }, [socket]);
+
+  const onAbortBtnClick = useCallback(() => {
+    if (gameId && playerId) {
+      socket.abortGame(gameId, playerId);
+    }
+  }, [socket, gameId, playerId]);
 
   return (
     <>
@@ -64,7 +107,14 @@ function App() {
         <WaitingForOpponentScreen></WaitingForOpponentScreen>
       )}
 
-      {gameState === GameState.Running && <Board boardState={boardState} />}
+      {isGameReady && (
+        <Board
+          boardState={boardState}
+          localPlayerColor={pieceColor!}
+          currentTurnColor={currentTurnColor!}
+          onAbortBtnClick={() => onAbortBtnClick()}
+        />
+      )}
 
       {gameState === GameState.Aborted && (
         <AbortedScreen onPlayBtnClick={() => onPlayBtnClick()}></AbortedScreen>

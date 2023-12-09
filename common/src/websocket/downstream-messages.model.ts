@@ -1,10 +1,9 @@
-import { BoardState } from '../board';
+import { BoardState, SquareState } from '../board';
 import { GameId, Move, PlayerId } from '../game';
 
 export type PlayerConfirmMessage = {
   type: 'playerConfirm';
   playerId: PlayerId;
-  gameId: GameId;
 };
 
 export type GameStartedMessage = {
@@ -12,6 +11,7 @@ export type GameStartedMessage = {
   gameId: GameId;
   opponentId: PlayerId;
   firstTurn: PlayerId;
+  color: SquareState.White | SquareState.Black;
   boardState: BoardState;
 };
 

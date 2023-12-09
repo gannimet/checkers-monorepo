@@ -1,4 +1,5 @@
 import {
+  AbortGameMessage,
   ApplyForGameMessage,
   GameId,
   Move,
@@ -28,6 +29,16 @@ export class CheckersSocket {
       gameId,
       playerId,
       moveSequence,
+    };
+
+    this.sendMessage(message);
+  }
+
+  abortGame(gameId: GameId, playerId: PlayerId) {
+    const message: AbortGameMessage = {
+      type: 'abortGame',
+      gameId,
+      playerId,
     };
 
     this.sendMessage(message);

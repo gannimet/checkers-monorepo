@@ -1,3 +1,3 @@
 export const CONFIG = {
-  websocketUrl: 'ws://127.0.0.1:3001',
+  websocketUrl: 'ws://192.168.178.34:3001',
 };

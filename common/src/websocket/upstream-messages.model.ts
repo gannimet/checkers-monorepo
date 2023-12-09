@@ -11,4 +11,13 @@ export type PlayTurnMessage = {
   moveSequence: Move[];
 };
 
-export type UpstreamSocketMessage = ApplyForGameMessage | PlayTurnMessage;
+export type AbortGameMessage = {
+  type: 'abortGame';
+  gameId: GameId;
+  playerId: PlayerId;
+};
+
+export type UpstreamSocketMessage =
+  | ApplyForGameMessage
+  | PlayTurnMessage
+  | AbortGameMessage;
