@@ -4,7 +4,7 @@ export function indexToPosition(i: number): Position {
   const row = Math.round(i >> 3);
   const column = i % 8;
 
-  return [row, column];
+  return [column, row];
 }
 
 export function positionToIndex([column, row]: Position) {

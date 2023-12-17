@@ -1,6 +1,7 @@
 import {
   AbortGameMessage,
   ApplyForGameMessage,
+  BoardState,
   DownstreamSocketMessage,
   GameAbortedMessage,
   GameId,
@@ -9,7 +10,9 @@ import {
   PlayerConfirmMessage,
   PlayerId,
   SquareState,
+  TurnPlayedMessage,
   UpstreamSocketMessage,
+  indexToPosition,
 } from 'common';
 import { WebSocket } from 'ws';
 import { getInitialBoardState } from './constants';
@@ -22,6 +25,7 @@ type Player = {
 
 type Game = {
   id: string;
+  boardState: BoardState;
   white?: Player;
   black?: Player;
   nextTurn?: PlayerId;
@@ -62,7 +66,69 @@ function handleApplyForGameMessage(
   putInOpenGameOrStartNew(ws, playerId);
 }
 
-function handlePlayTurnMessage(ws: WebSocket, message: PlayTurnMessage) {}
+function handlePlayTurnMessage(ws: WebSocket, message: PlayTurnMessage) {
+  const { moveSequence, gameId, playerId } = message;
+  const game = currentGames.get(gameId);
+
+  if (
+    !game ||
+    !game.white ||
+    !game.black ||
+    (game.white.id !== playerId && game.black.id !== playerId)
+  ) {
+    // gameId and/or playerId are not valid or do not match
+    return;
+  }
+
+  if (game.nextTurn !== playerId) {
+    // It was not this player's turn
+    return;
+  }
+
+  const newBoardState = [...game.boardState];
+
+  // TODO check move for validity
+
+  const isPlayerWhite = game.white.id === playerId;
+
+  moveSequence.forEach((move) => {
+    const position = indexToPosition(move.to);
+    if (position[1] === 0 || position[1] === 7) {
+      newBoardState[move.to] = isPlayerWhite
+        ? SquareState.WhiteKing
+        : SquareState.BlackKing;
+    } else {
+      newBoardState[move.to] = newBoardState[move.from];
+    }
+
+    newBoardState[move.from] = SquareState.Empty;
+
+    if (move.capture != null) {
+      newBoardState[move.capture] = SquareState.Empty;
+    }
+  });
+
+  const player = isPlayerWhite ? game.white : game.black;
+  const opponent = isPlayerWhite ? game.black : game.white;
+  const nextTurn = game.nextTurn === playerId ? opponent.id : player.id;
+
+  // Update game state
+  game.boardState = newBoardState;
+  game.nextTurn = nextTurn;
+
+  // Inform clients
+  const turnPlayedMessage: TurnPlayedMessage = {
+    type: 'turnPlayed',
+    gameId,
+    playedBy: playerId,
+    moveSequence,
+    boardState: game.boardState,
+    nextTurn,
+  };
+
+  sendMessage(player.socket, turnPlayedMessage);
+  sendMessage(opponent.socket, turnPlayedMessage);
+}
 
 function handleAbortGameMessage(ws: WebSocket, message: AbortGameMessage) {
   const { gameId, playerId } = message;
@@ -118,6 +184,7 @@ function putInOpenGameOrStartNew(ws: WebSocket, playerId: PlayerId): Game {
     id: randomUUID(),
     white: player,
     nextTurn: player.id,
+    boardState: getInitialBoardState(),
   };
 
   currentGames.set(game.id, game);
@@ -130,15 +197,13 @@ function startGame(game: Game) {
     return;
   }
 
-  const initialBoardState = getInitialBoardState();
-
   const startMessageWhite: GameStartedMessage = {
     type: 'gameStarted',
     gameId: game.id,
     opponentId: game.black.id,
     firstTurn: game.white.id,
     color: SquareState.White,
-    boardState: initialBoardState,
+    boardState: game.boardState,
   };
 
   const startMessageBlack: GameStartedMessage = {
@@ -147,7 +212,7 @@ function startGame(game: Game) {
     opponentId: game.white.id,
     firstTurn: game.white.id,
     color: SquareState.Black,
-    boardState: initialBoardState,
+    boardState: game.boardState,
   };
 
   sendMessage(game.white.socket, startMessageWhite);

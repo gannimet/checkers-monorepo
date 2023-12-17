@@ -1,4 +1,4 @@
-import { BoardState, GameId, PlayerId, SquareState } from 'common';
+import { BoardState, GameId, Move, PlayerId, SquareState } from 'common';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import './App.scss';
 import AbortedScreen from './aborted-screen/AbortedScreen';
@@ -91,6 +91,15 @@ function App() {
     socket.applyForGame();
   }, [socket]);
 
+  const onMoveSelected = useCallback(
+    (moveSequence: Move[]) => {
+      if (gameId && playerId) {
+        socket.playTurn(gameId, playerId, moveSequence);
+      }
+    },
+    [socket, gameId, playerId],
+  );
+
   const onAbortBtnClick = useCallback(() => {
     if (gameId && playerId) {
       socket.abortGame(gameId, playerId);
@@ -113,6 +122,7 @@ function App() {
           localPlayerColor={pieceColor!}
           currentTurnColor={currentTurnColor!}
           onAbortBtnClick={() => onAbortBtnClick()}
+          onMoveSelected={(moveSequence) => onMoveSelected(moveSequence)}
         />
       )}
 

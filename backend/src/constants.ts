@@ -1,4 +1,4 @@
-import { BoardState, Position, SquareState, positionToIndex } from 'common';
+import { BoardState, Position, positionToIndex } from 'common';
 
 export function getInitialBoardState(): BoardState {
   /**
@@ -15,7 +15,7 @@ export function getInitialBoardState(): BoardState {
     [2, 5],
     [4, 5],
     [6, 5],
-    [6, 3],
+    [1, 6],
     [3, 6],
     [5, 6],
     [7, 6],
@@ -26,17 +26,17 @@ export function getInitialBoardState(): BoardState {
   ];
 
   const initialBlackPositions: Position[] = [
-    [3, 4],
+    [1, 0],
     [3, 0],
     [5, 0],
     [7, 0],
-    [0, 3],
+    [0, 1],
     [2, 1],
     [5, 2],
     [6, 1],
     [1, 2],
     [3, 2],
-    [5, 4],
+    [4, 1],
     [7, 2],
   ];
 
@@ -51,8 +51,6 @@ export function getInitialBoardState(): BoardState {
 
     initialState[index] = 2;
   });
-
-  initialState[44] = SquareState.WhiteKing;
 
   return initialState;
 }

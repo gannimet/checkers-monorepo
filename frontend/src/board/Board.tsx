@@ -22,13 +22,21 @@ type BoardProps = {
   localPlayerColor: SquareState.White | SquareState.Black;
   currentTurnColor: SquareState.White | SquareState.Black;
   onAbortBtnClick: () => void;
+  onMoveSelected: (moveSequence: Move[]) => void;
 };
 
 const Board = React.memo<BoardProps>(
-  ({ boardState, localPlayerColor, currentTurnColor, onAbortBtnClick }) => {
+  ({
+    boardState,
+    localPlayerColor,
+    currentTurnColor,
+    onAbortBtnClick,
+    onMoveSelected,
+  }) => {
     const rows = new Array(8).fill(0);
     const columns = new Array(8).fill(0);
     const [validMoves, setValidMoves] = useState<Move[][]>([]);
+    const [isMovePreviewActive, setIsMovePreviewActive] = useState(false);
 
     const highlightedSquareIndices = useMemo(() => {
       return getHighlightedSquareIndicesForPossibleMoves(validMoves);
@@ -36,25 +44,46 @@ const Board = React.memo<BoardProps>(
 
     const onCellClick = useCallback(
       (sourceIndex: number) => {
-        const clickedPiece = boardState[sourceIndex];
-        const isClickedPiecePlayerColor =
-          localPlayerColor === SquareState.White
-            ? isWhite(clickedPiece)
-            : isBlack(clickedPiece);
-        const isLocalPlayersTurn = localPlayerColor === currentTurnColor;
+        if (isMovePreviewActive) {
+          const selectedMoveSequence = validMoves.find((moveSequence) => {
+            return (
+              moveSequence.length > 0 &&
+              moveSequence[moveSequence.length - 1].to === sourceIndex
+            );
+          });
 
-        if (!isLocalPlayersTurn || !isClickedPiecePlayerColor) {
+          if (selectedMoveSequence) {
+            onMoveSelected(selectedMoveSequence);
+          }
+
+          setIsMovePreviewActive(false);
           setValidMoves([]);
-          return;
-        }
+        } else {
+          const clickedPiece = boardState[sourceIndex];
+          const isClickedPiecePlayerColor =
+            localPlayerColor === SquareState.White
+              ? isWhite(clickedPiece)
+              : isBlack(clickedPiece);
+          const isLocalPlayersTurn = localPlayerColor === currentTurnColor;
 
-        const possibleMoves = getValidMovesFromPosition(
-          sourceIndex,
-          boardState,
-        );
-        setValidMoves(possibleMoves);
+          if (!isLocalPlayersTurn || !isClickedPiecePlayerColor) {
+            setValidMoves([]);
+            setIsMovePreviewActive(false);
+            return;
+          }
+
+          const possibleMoves = getValidMovesFromPosition(
+            sourceIndex,
+            boardState,
+          );
+          setValidMoves(possibleMoves);
+
+          if (possibleMoves.length > 0) {
+            setIsMovePreviewActive(true);
+          }
+        }
       },
-      [boardState],
+      [boardState, isMovePreviewActive],
     );
 
     return (
