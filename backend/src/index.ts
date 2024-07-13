@@ -5,6 +5,8 @@ import { handleClientMessage } from './message-handling';
 const port = process.env.PORT != null ? parseInt(process.env.PORT, 10) : 3001;
 const wss = new WebSocketServer({ port });
 
+console.log('Trying to setup Websocket at port:', port);
+
 wss.on('connection', (ws) => {
   ws.on('error', console.error);
 

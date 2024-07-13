@@ -35,9 +35,19 @@ export type GameOverMessage = {
   winner: PlayerId;
 };
 
+export type InfoMessage = {
+  type: 'info';
+  gameId?: GameId;
+  nextTurn?: PlayerId;
+  winner?: PlayerId;
+  boardState: BoardState;
+  aborted: boolean;
+};
+
 export type DownstreamSocketMessage =
   | PlayerConfirmMessage
   | GameStartedMessage
   | TurnPlayedMessage
   | GameAbortedMessage
-  | GameOverMessage;
+  | GameOverMessage
+  | InfoMessage;

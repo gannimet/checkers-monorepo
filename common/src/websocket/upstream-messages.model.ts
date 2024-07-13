@@ -17,7 +17,17 @@ export type AbortGameMessage = {
   playerId: PlayerId;
 };
 
+export type InfoSubscribeMessage = {
+  type: 'infoSub';
+};
+
+export type InfoUnsubscribeMessage = {
+  type: 'infoUnsub';
+};
+
 export type UpstreamSocketMessage =
   | ApplyForGameMessage
   | PlayTurnMessage
-  | AbortGameMessage;
+  | AbortGameMessage
+  | InfoSubscribeMessage
+  | InfoUnsubscribeMessage;

@@ -1,5 +1,4 @@
-import { Position, SquareState } from 'common/dist/board';
-import { Move } from 'common/dist/game';
+import { Move, Position, SquareState } from 'common';
 
 export function getSquareStateClassName(squareState: SquareState) {
   switch (squareState) {

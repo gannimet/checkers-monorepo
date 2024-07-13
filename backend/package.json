@@ -9,7 +9,9 @@
   "private": false,
   "scripts": {
     "start": "nodemon",
-    "lint": "eslint . --ext .js,.ts --fix"
+    "lint": "eslint . --ext .js,.ts --fix",
+    "build": "tsc",
+    "deploy": "scp -r ./dist richardw@chaldene.uberspace.de:/home/richardw/checkers-backend"
   },
   "dependencies": {
     "cors": "^2.8.5",

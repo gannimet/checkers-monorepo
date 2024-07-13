@@ -5,13 +5,18 @@ import {
   DownstreamSocketMessage,
   GameAbortedMessage,
   GameId,
+  GameOverMessage,
   GameStartedMessage,
+  InfoMessage,
+  InfoSubscribeMessage,
+  InfoUnsubscribeMessage,
   PlayTurnMessage,
   PlayerConfirmMessage,
   PlayerId,
   SquareState,
   TurnPlayedMessage,
   UpstreamSocketMessage,
+  checkForWinner,
   indexToPosition,
 } from 'common';
 import { WebSocket } from 'ws';
@@ -32,6 +37,7 @@ type Game = {
 };
 
 const currentGames = new Map<GameId, Game>();
+let infoSubscriber: WebSocket | undefined = undefined;
 
 export function handleClientMessage(
   ws: WebSocket,
@@ -46,6 +52,12 @@ export function handleClientMessage(
       break;
     case 'abortGame':
       handleAbortGameMessage(ws, message);
+      break;
+    case 'infoSub':
+      handleInfoSubMessage(ws, message);
+      break;
+    case 'infoUnsub':
+      handleInfoUnsubMessage(ws, message);
       break;
   }
 }
@@ -128,6 +140,28 @@ function handlePlayTurnMessage(ws: WebSocket, message: PlayTurnMessage) {
 
   sendMessage(player.socket, turnPlayedMessage);
   sendMessage(opponent.socket, turnPlayedMessage);
+
+  const winner = checkForWinner(newBoardState);
+
+  if (winner != null) {
+    const winnerId =
+      winner === SquareState.White ? game.white.id : game.black.id;
+
+    const gameOverMessage: GameOverMessage = {
+      type: 'gameOver',
+      gameId,
+      winner: winnerId,
+    };
+
+    sendMessage(player.socket, gameOverMessage);
+    sendMessage(opponent.socket, gameOverMessage);
+    publishGameInfo(false, winnerId);
+
+    // Clear up this no longer existing game
+    currentGames.delete(gameId);
+  } else {
+    publishGameInfo();
+  }
 }
 
 function handleAbortGameMessage(ws: WebSocket, message: AbortGameMessage) {
@@ -151,8 +185,22 @@ function handleAbortGameMessage(ws: WebSocket, message: AbortGameMessage) {
     sendMessage(opponentSocket, response);
   }
 
+  publishGameInfo(true);
+
   // Clear up this no longer existing game
   currentGames.delete(gameId);
+}
+
+function handleInfoSubMessage(ws: WebSocket, message: InfoSubscribeMessage) {
+  infoSubscriber = ws;
+  publishGameInfo();
+}
+
+function handleInfoUnsubMessage(
+  ws: WebSocket,
+  message: InfoUnsubscribeMessage,
+) {
+  infoSubscriber = undefined;
 }
 
 function putInOpenGameOrStartNew(ws: WebSocket, playerId: PlayerId): Game {
@@ -217,6 +265,25 @@ function startGame(game: Game) {
 
   sendMessage(game.white.socket, startMessageWhite);
   sendMessage(game.black.socket, startMessageBlack);
+  publishGameInfo();
+}
+
+function publishGameInfo(aborted = false, winnerId?: PlayerId) {
+  const games = Array.from(currentGames.values());
+
+  if (games.length > 0 && infoSubscriber) {
+    const { id, boardState, nextTurn } = games[0];
+    const response: InfoMessage = {
+      type: 'info',
+      gameId: id,
+      boardState,
+      nextTurn,
+      aborted,
+      winner: winnerId,
+    };
+
+    sendMessage(infoSubscriber, response);
+  }
 }
 
 function sendMessage(ws: WebSocket, message: DownstreamSocketMessage) {

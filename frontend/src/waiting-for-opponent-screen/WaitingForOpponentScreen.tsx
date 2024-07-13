@@ -1,10 +1,11 @@
 import React from 'react';
+import './WaitingForOpponentScreen.scss';
 
 type WaitingForOpponentScreenProps = {};
 
 const WaitingForOpponentScreen = React.memo<WaitingForOpponentScreenProps>(
   () => {
-    return <div>Waiting for opponent …</div>;
+    return <div className="waiting">Waiting for opponent …</div>;
   },
 );
 

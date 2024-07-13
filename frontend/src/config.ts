@@ -1,3 +1,7 @@
+const wsProtocol = import.meta.env.VITE_WEBSOCKET_PROTOCOL;
+const wsDomain = import.meta.env.VITE_WEBSOCKET_DOMAIN;
+const wsPort = import.meta.env.VITE_WEBSOCKET_PORT;
+
 export const CONFIG = {
-  websocketUrl: 'ws://192.168.178.34:3001',
+  websocketUrl: `${wsProtocol}://${wsDomain}:${wsPort}`,
 };

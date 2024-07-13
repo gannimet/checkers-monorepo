@@ -197,3 +197,23 @@ export function isOpponentPiece(
 ) {
   return isWhite(sourcePiece) ? isBlack(otherPiece) : isWhite(otherPiece);
 }
+
+// TODO This only checks if there are pieces left on the board
+// A winner should also be declared if the opponent has no legal moves left
+export function checkForWinner(
+  boardState: BoardState,
+): SquareState.White | SquareState.Black | null {
+  const whitePiecesLeft = boardState.some((square) => isWhite(square));
+
+  if (!whitePiecesLeft) {
+    return SquareState.Black;
+  }
+
+  const blackPiecesLeft = boardState.some((square) => isBlack(square));
+
+  if (!blackPiecesLeft) {
+    return SquareState.White;
+  }
+
+  return null;
+}

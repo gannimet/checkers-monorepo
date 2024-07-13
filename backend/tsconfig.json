@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "outDir": "dist",
     "module": "commonjs",
     "target": "es6",
     "esModuleInterop": true,
@@ -8,11 +9,9 @@
     "strict": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "lib": [
-      "esnext"
-    ],
+    "lib": ["esnext"],
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true
-  },
+  }
 }
